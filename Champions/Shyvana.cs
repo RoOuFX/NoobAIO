@@ -113,6 +113,7 @@ namespace NoobAIO.Champions
             {
                 Flee();
             }
+            Killsteal();
         }
         private static void OnDraw(EventArgs args)
         {
@@ -216,6 +217,26 @@ namespace NoobAIO.Champions
                 {
                     e.Cast(jgl);
                 }
+            }
+        }
+        private static void Killsteal()
+        {
+            var target = TargetSelector.GetTarget(e.Range);
+            var qdmg = Player.GetSpellDamage(target, SpellSlot.Q);
+            var edmg = Player.GetSpellDamage(target, SpellSlot.E);
+            var ksq = Menu["KillSteal"].GetValue<MenuBool>("ksQ");
+            var ksE = Menu["KillSteal"].GetValue<MenuBool>("ksE");
+            if (!target.IsValidTarget())
+            {
+                return;
+            }
+            if (q.IsInRange(target) && q.IsReady() && qdmg > target.Health + target.AllShield && ksq)
+            {
+                q.CastOnUnit(target);
+            }
+            if (q.IsInRange(target) && e.IsReady() && edmg > target.Health + target.AllShield && ksq && ksE)
+            {
+                e.Cast();
             }
         }
         private static void Flee()

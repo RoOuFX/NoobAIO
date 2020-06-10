@@ -109,8 +109,6 @@ namespace NoobAIO.Champions
             {
                 WardJump();
             }
-
-
         }
         private static void ObjAiBaseOnOnProcessSpellCast(AIBaseClient sender, AIBaseClientProcessSpellCastEventArgs args)
         {
@@ -119,13 +117,9 @@ namespace NoobAIO.Champions
             {
                 return;
             }
-
             if (args.SData.Name == "JaxEmpowerTwo")
                 Orbwalker.ResetAutoAttackTimer();
-
-
         }
-
         private static void OnDraw(EventArgs args)
         {
             var drawQ = Menu["Drawing"].GetValue<MenuBool>("Qd");
@@ -226,7 +220,6 @@ namespace NoobAIO.Champions
             }
 
         }
-
         private static void DoLaneclear()
         {
             var LaneclearW = Menu["clear"].GetValue<MenuBool>("laneclearW");
@@ -265,7 +258,6 @@ namespace NoobAIO.Champions
                 }
             }
         }
-
         private void WardJump()
         {
             Orbwalker.Move(Game.CursorPos);

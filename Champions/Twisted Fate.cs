@@ -26,13 +26,24 @@ namespace NoobAIO.Champions
             Menu = new Menu("TwistedFate", "Noob Twisted Fate", true);
 
             // Combo
-            var comboMenu = new Menu("Combo", "Combo");
-            comboMenu.Add(new MenuBool("comboQ", "Use Q"));
-            comboMenu.Add(new MenuBool("comboQStun", "Only use Q when stunned"));
-            comboMenu.Add(new MenuSeparator("Head1", "W Usage"));
-            comboMenu.Add(new MenuBool("comboW", "Use W"));
-            comboMenu.Add(new MenuSlider("comboWBlue", "Use Bluecard if Mana is under X %", 35, 0, 100));
+            var comboMenu = new Menu("Combo", "Combo")
+            {
+                new MenuBool("comboQ", "Use Q"),
+                new MenuBool("comboQStun", "Only use Q when stunned"),
+                new MenuSeparator("Head1", "W Usage"),
+                new MenuBool("comboW", "Use W"),
+                new MenuSlider("comboWBlue", "Use Blue Card if Mana is under X %", 35, 0, 100)
+            };
             Menu.Add(comboMenu);
+
+            // Harass
+            var harassMenu = new Menu("Harass", "Harass")
+            {
+                new MenuBool("harassQ", "Use Q"),
+                new MenuSlider("harassQmana", "^minimum mana % for Harass", 40, 0, 100),
+                new MenuBool("harassW", "Use W"),
+            };
+            Menu.Add(harassMenu);
 
             // Pick a card
             var pickacardMenu = new Menu("Cardpick", "Pick a card")
@@ -43,7 +54,7 @@ namespace NoobAIO.Champions
             };
             Menu.Add(pickacardMenu);
 
-            // lane clear
+            // Lane clear
             var laneclearMenu = new Menu("Clear", "Farming")
             {
                 new MenuSeparator("Head1", "Lane Clear"),
@@ -55,12 +66,19 @@ namespace NoobAIO.Champions
             };
             Menu.Add(laneclearMenu);
 
-            // kill steal
+            // Kill steal
             var killstealMenu = new Menu("KillSteal", "Kill Steal")
             {
                 new MenuBool("ksQ", "Use Q"),
             };
             Menu.Add(killstealMenu);
+
+            // Misc
+            var miscMenu = new Menu("Misc", "Misc")
+            {
+                new MenuBool("OnGapYellowCard", "Use Gold Card on Gapclose")
+            };
+            Menu.Add(miscMenu);
 
             // Drawing
             var drawMenu = new Menu("Drawing", "Draw")
@@ -83,6 +101,7 @@ namespace NoobAIO.Champions
             Game.OnUpdate += GameOnGameUpdate;
             Drawing.OnDraw += OnDraw;
             AIBaseClient.OnProcessSpellCast += ObjAiBaseOnOnProcessSpellCast;
+            Gapcloser.OnGapcloser += Gapcloser_OnGapcloser;
         }
         private static void ObjAiBaseOnOnProcessSpellCast(AIBaseClient sender, AIBaseClientProcessSpellCastEventArgs args)
         {
@@ -122,14 +141,17 @@ namespace NoobAIO.Champions
                 case OrbwalkerMode.Combo:
                     DoCombo();
                     break;
+                case OrbwalkerMode.Harass:
+                    DoHarass();
+                    break;
                 case OrbwalkerMode.LaneClear:
                     DoLaneclear();
                     break;
             }
-
+            // KS and Q on Immobile
             Active();
 
-            //Select cards.
+            // Select cards.
             if (Menu["Cardpick"].GetValue<MenuKeyBind>("SelectYellow").Active)
             {
                 SelectACard(Cards.Yellow);
@@ -144,7 +166,6 @@ namespace NoobAIO.Champions
             {
                 SelectACard(Cards.Red);
             }
-
         }
         static void SelectACard(Cards aCard)
         {
@@ -206,7 +227,7 @@ namespace NoobAIO.Champions
 
             if (target != null)
             {
-                if (UseW && target.IsValidTarget(700) && w.IsReady())
+                if (UseW && target.IsValidTarget(1100) && w.IsReady())
                 {
                     if (Player.ManaPercent < UseWBlue)
                     {
@@ -245,12 +266,26 @@ namespace NoobAIO.Champions
         private static void DoLaneclear()
         {
             var LaneclearQ = Menu["Clear"].GetValue<MenuBool>("laneclearQ");
-            var LaneclearW = Menu["Clear"].GetValue<MenuBool>("laneclearW");
+            var LaneclearW = Menu["Clear"].GetValue<MenuBool>("laneclearW"); 
             var JungleclearQ = Menu["Clear"].GetValue<MenuBool>("jungleclearQ");
             var JungleclearW = Menu["Clear"].GetValue<MenuBool>("jungleclearW");
 
+            var laneW = GameObjects.GetMinions(ObjectManager.Player.Position, Player.GetRealAutoAttackRange() + 100);
+            var laneWJ = GameObjects.GetJungles(ObjectManager.Player.Position, Player.GetRealAutoAttackRange() + 100);
+            var Wfarmpos = w.GetLineFarmLocation(laneW, 100);
+            var WfarmposJ = w.GetLineFarmLocation(laneWJ, 100);
+
             var allJgl = GameObjects.GetJungles(ObjectManager.Player.Position, q.Range, JungleType.All);
             var allMinions = GameObjects.GetMinions(ObjectManager.Player.Position, q.Range, MinionTypes.All);
+
+            if (Player.IsDead)
+            {
+                return;
+            }
+            if (allJgl == null || allMinions == null)
+            {
+                return;
+            }
 
             foreach (var minion in allMinions)
             {
@@ -260,7 +295,15 @@ namespace NoobAIO.Champions
                 }
                 if (w.IsReady() && LaneclearW && minion.IsValidTarget() && w.IsInRange(minion))
                 {
-                    w.Cast(minion);
+                    if (minion.IsValidTarget(Player.GetRealAutoAttackRange()) &&
+                            Wfarmpos.MinionsHit >= 3 && laneW.Count >= 3)
+                    {
+                        TFCardSelector.CardSelector.StartSelecting(Cards.Red);
+                    }
+                    else
+                    {
+                        TFCardSelector.CardSelector.StartSelecting(Cards.Blue);
+                    }
                 }
             }
             foreach (var jgl in allJgl)
@@ -272,7 +315,97 @@ namespace NoobAIO.Champions
 
                 if (w.IsReady() && jgl.IsValidTarget() && w.IsInRange(jgl) && JungleclearW)
                 {
-                    w.Cast(jgl);
+                    if (jgl.IsValidTarget(Player.GetRealAutoAttackRange()) &&
+                            WfarmposJ.MinionsHit >= 3 && laneWJ.Count >= 3)
+                    {
+                        TFCardSelector.CardSelector.StartSelecting(Cards.Red);
+                    }
+                    else
+                    {
+                        TFCardSelector.CardSelector.StartSelecting(Cards.Blue);
+                    }
+                }
+            }
+        }
+        private static void DoHarass()
+        {
+            var target = TargetSelector.GetTarget(q.Range);
+            var UseQ = Menu["Harass"].GetValue<MenuBool>("harassQ");
+            var minmana = Menu["Harass"].GetValue<MenuSlider>("harassQmana");
+            var UseW = Menu["Harass"].GetValue<MenuBool>("harassW");
+            var UseWBlue = Menu["Combo"].GetValue<MenuSlider>("comboWBlue");
+
+            if (Player.IsDead)
+            {
+                return;
+            }
+
+            if (target != null)
+            {
+                if (UseW && target.IsValidTarget(1100) && w.IsReady())
+                {
+                    if (Player.ManaPercent < UseWBlue)
+                    {
+                        TFCardSelector.CardSelector.StartSelecting(Cards.Blue);
+                    }
+                    else
+                    {
+                        TFCardSelector.CardSelector.StartSelecting(Cards.Yellow);
+                    }
+                }
+                if (UseQ && q.IsReady() && q.IsInRange(target) && Player.ManaPercent > minmana)
+                {
+                    if (target.HasBuffOfType(BuffType.Stun) ||
+                            target.HasBuffOfType(BuffType.Snare) ||
+                            target.HasBuffOfType(BuffType.Knockup) ||
+                            target.HasBuffOfType(BuffType.Suppression) ||
+                            target.IsRecalling())
+                    {
+                        q.Cast(target);
+                    }
+                    else
+                    {
+                        var Qprediction = q.GetPrediction(target);
+
+                        if (Qprediction.Hitchance >= HitChance.VeryHigh)
+                        {
+                            q.Cast(Qprediction.CastPosition);
+                        }
+                    }
+                }
+            }
+        }
+        private static void Gapcloser_OnGapcloser(AIHeroClient sender, Gapcloser.GapcloserArgs args)
+        {
+            if (!Menu["Misc"].GetValue<MenuBool>("OnGapYellowCard"))
+            {
+                return;
+            }
+            if (w.IsReady() && sender != null && sender.IsValidTarget(w.Range))
+            {
+                if (sender.IsMelee)
+                {
+                    if (sender.IsValidTarget(sender.AttackRange + sender.BoundingRadius + 100))
+                    {
+                        SelectACard(Cards.Yellow);
+                    }
+                }
+
+                if (sender.IsDashing())
+                {
+                    if (args.EndPosition.DistanceToPlayer() <= 250 ||
+                        sender.PreviousPosition.DistanceToPlayer() <= 300)
+                    {
+                        SelectACard(Cards.Yellow);
+                    }
+                }
+
+                if (sender.IsCastingImporantSpell())
+                {
+                    if (sender.PreviousPosition.DistanceToPlayer() <= 300)
+                    {
+                        SelectACard(Cards.Yellow);
+                    }
                 }
             }
         }

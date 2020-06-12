@@ -16,6 +16,7 @@ namespace NoobAIO.Champions
 {
     class Twisted_Fate
     {
+        //fix
         private static Menu Menu;
         private static Spell q, w, r;
         private static AIHeroClient Player { get { return ObjectManager.Player; } }

@@ -16,10 +16,18 @@ namespace NoobAIO.Champions
 {
     class Twisted_Fate
     {
-        public static int PickTick = 0;
         private static Menu Menu;
         private static Spell q, w, r;
         private static AIHeroClient Player { get { return ObjectManager.Player; } }
+        public static AttackableUnit ForceTarget { get; set; }
+        public static bool Estacks
+        {
+            get { return Player.HasBuff("cardmasterstackparticle"); }
+        }
+        public static bool Wcard
+        {
+            get { return Player.HasBuff("BlueCardPreAttack"); }
+        }
         #region Menu
         private static void CreateMenu()
         {
@@ -32,7 +40,8 @@ namespace NoobAIO.Champions
                 new MenuBool("comboQStun", "Only use Q when stunned"),
                 new MenuSeparator("Head1", "W Usage"),
                 new MenuBool("comboW", "Use W"),
-                new MenuSlider("comboWBlue", "Use Blue Card if Mana is under X %", 35, 0, 100)
+                new MenuSlider("comboWBlue", "Use Blue Card if Mana is under X %", 35, 0, 100),
+                new MenuKeyBind("comboOneshot", "Oneshot combo with Blue+Estacks", System.Windows.Forms.Keys.T, KeyBindType.Toggle)
             };
             Menu.Add(comboMenu);
 
@@ -49,7 +58,7 @@ namespace NoobAIO.Champions
             var pickacardMenu = new Menu("Cardpick", "Pick a card")
             {
                 new MenuKeyBind("SelectBlue", "Blue Card", System.Windows.Forms.Keys.E, KeyBindType.Press),
-                new MenuKeyBind("SelectRed", "Red Card", System.Windows.Forms.Keys.T, KeyBindType.Press),
+                new MenuKeyBind("SelectRed", "Red Card", System.Windows.Forms.Keys.U, KeyBindType.Press),
                 new MenuKeyBind("SelectYellow", "Gold Card", System.Windows.Forms.Keys.W, KeyBindType.Press)
             };
             Menu.Add(pickacardMenu);
@@ -224,40 +233,95 @@ namespace NoobAIO.Champions
             {
                 return;
             }
-
-            if (target != null)
+            if (Menu["Combo"].GetValue<MenuKeyBind>("comboOneshot").Active)
             {
-                if (UseW && target.IsValidTarget(1100) && w.IsReady())
+                Orbwalker.ForceTarget = TargetSelector.GetTarget(w.Range);
+                var targetw = TargetSelector.GetTarget(w.Range);
+                var mobs = GameObjects.Jungle;
+                var minions = GameObjects.Minions;
+                if (Estacks)
                 {
-                    if (Player.ManaPercent < UseWBlue)
+                    
+                    Orbwalker.AttackState = false;
+                    if (target == null) { return; }
+
+                    if (w.IsReady() && target.IsValidTarget(1100)) { TFCardSelector.CardSelector.StartSelecting(Cards.Blue); }
+
+                    if (Wcard)
                     {
-                        TFCardSelector.CardSelector.StartSelecting(Cards.Blue);
-                    }
-                    else
-                    {
-                        TFCardSelector.CardSelector.StartSelecting(Cards.Yellow);
+                        Orbwalker.AttackState = true;
+                        //const UInt32 WM_KEYDOWN = 0x0100;
                     }
                 }
-                if (UseQ && q.IsReady() && q.IsInRange(target))
-                {
-                    if (UseQStun)
+                else
+                {                  
+                    if (!Estacks)
                     {
-                        if (target.HasBuffOfType(BuffType.Stun) ||
-                                target.HasBuffOfType(BuffType.Snare) ||
-                                target.HasBuffOfType(BuffType.Knockup) ||
-                                target.HasBuffOfType(BuffType.Suppression) ||
-                                target.IsRecalling())
+                        Orbwalker.AttackState = true;
+                        if (targetw.IsValidTarget(w.Range) || mobs.Count() >= 1 || minions.Count() >= 1)
                         {
-                            q.Cast(target);
+                            foreach(var mob in mobs)
+                            {
+                                if (!mob.IsValid) { return; }
+                                Orbwalker.Orbwalk(mob, Game.CursorPos);
+                            }
+                            foreach (var minion in minions)
+                            {
+                                if (!minion.IsValid) { return; }
+                                Orbwalker.Orbwalk(minion, Game.CursorPos);
+                            }
+                            if (target == null) { return; }
+
+                            return;
                         }
+
+                    }
+                } 
+            }
+            else
+            {
+                if (target != null)
+                {
+                    if(TFCardSelector.CardSelector.Status == SelectStatus.Selecting)
+                    {
+                        Orbwalker.AttackState = false;
                     }
                     else
                     {
-                        var Qprediction = q.GetPrediction(target);
-
-                        if (Qprediction.Hitchance >= HitChance.High)
+                        Orbwalker.AttackState = true;
+                    }
+                    if (UseW && target.IsValidTarget(1100) && w.IsReady())
+                    {
+                        if (Player.ManaPercent < UseWBlue)
                         {
-                            q.Cast(Qprediction.CastPosition);
+                            TFCardSelector.CardSelector.StartSelecting(Cards.Blue);
+                        }
+                        else
+                        {
+                            TFCardSelector.CardSelector.StartSelecting(Cards.Yellow);
+                        }
+                    }
+                    if (UseQ && q.IsReady() && q.IsInRange(target))
+                    {
+                        if (UseQStun)
+                        {
+                            if (target.HasBuffOfType(BuffType.Stun) ||
+                                    target.HasBuffOfType(BuffType.Snare) ||
+                                    target.HasBuffOfType(BuffType.Knockup) ||
+                                    target.HasBuffOfType(BuffType.Suppression) ||
+                                    target.IsRecalling())
+                            {
+                                q.Cast(target);
+                            }
+                        }
+                        else
+                        {
+                            var Qprediction = q.GetPrediction(target);
+
+                            if (Qprediction.Hitchance >= HitChance.High)
+                            {
+                                q.Cast(Qprediction.CastPosition);
+                            }
                         }
                     }
                 }

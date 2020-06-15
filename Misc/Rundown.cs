@@ -32,7 +32,7 @@ namespace NoobAIO.Misc
             CreateMenu();
             Game.OnUpdate += GameOnUpdate;
             Inting();
-                   
+            
         }
         private static void Inting()
         {
@@ -52,6 +52,7 @@ namespace NoobAIO.Misc
             {
                 Player.IssueOrder(GameObjectOrder.MoveTo, runitdown);
             }
+            
         }
 
     }

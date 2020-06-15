@@ -30,6 +30,9 @@ namespace NoobAIO
                 case "Shyvana":
                     new Shyvana();
                     break;
+                case "Twitch":
+                    new Twitch();
+                    break;
             }
             new Rundown();
 

@@ -20,7 +20,6 @@ namespace NoobAIO.Champions
         private static Menu Menu;
         private static Spell q, w, r;
         private static AIHeroClient Player { get { return ObjectManager.Player; } }
-        public static AttackableUnit ForceTarget { get; set; }
         public static bool Estacks
         {
             get { return Player.HasBuff("cardmasterstackparticle"); }
@@ -138,6 +137,13 @@ namespace NoobAIO.Champions
             {
                 Render.Circle.DrawCircle(p, r.Range, System.Drawing.Color.Aqua);
             }
+
+            var playerPos = Drawing.WorldToScreen(Player.Position);
+
+            if (!playerPos.IsZero)
+            {
+                Drawing.DrawText(playerPos.X - 53, playerPos.Y + 13, Menu["Combo"].GetValue<MenuKeyBind>("comboOneshot").Active ? System.Drawing.Color.Lime : System.Drawing.Color.Gray, Menu["Combo"].GetValue<MenuKeyBind>("comboOneshot").Active ? "OneShot Combo: ON" : "OneShot Combo: OFF");
+            }
         }
         private static void GameOnGameUpdate(EventArgs args)
         {
@@ -252,6 +258,12 @@ namespace NoobAIO.Champions
                     {
                         Orbwalker.AttackState = true;
                         //const UInt32 WM_KEYDOWN = 0x0100;
+                        var Qprediction = q.GetPrediction(target);
+
+                        if (Qprediction.Hitchance >= HitChance.High && q.IsReady())
+                        {
+                            q.Cast(Qprediction.CastPosition);
+                        }
                     }
                 }
                 else
@@ -351,7 +363,7 @@ namespace NoobAIO.Champions
             {
                 return;
             }
-
+            Orbwalker.AttackState = true;
             foreach (var minion in allMinions)
             {
                 if (q.IsReady() && LaneclearQ && minion.IsValidTarget() && q.IsInRange(minion))
@@ -404,7 +416,7 @@ namespace NoobAIO.Champions
             {
                 return;
             }
-
+            Orbwalker.AttackState = true;
             if (target != null)
             {
                 if (UseW && target.IsValidTarget(1100) && w.IsReady())
@@ -446,6 +458,7 @@ namespace NoobAIO.Champions
             {
                 return;
             }
+            Orbwalker.AttackState = true;
             if (w.IsReady() && sender != null && sender.IsValidTarget(w.Range))
             {
                 if (sender.IsMelee)

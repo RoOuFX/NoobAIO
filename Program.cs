@@ -33,6 +33,9 @@ namespace NoobAIO
                 case "Twitch":
                     new Twitch();
                     break;
+                case "MasterYi":
+                    new Master_Yi();
+                    break;
             }
             new Rundown();
 

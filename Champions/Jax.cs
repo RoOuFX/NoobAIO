@@ -210,7 +210,7 @@ namespace NoobAIO.Champions
                 w.Cast();
                 Player.IssueOrder(GameObjectOrder.AttackUnit, targetW);
             }
-
+            // R Usage
             if (r.IsReady() && UseR)
             {
                 if (Player.Position.CountEnemyHeroesInRange(q.Range) >= MinR)

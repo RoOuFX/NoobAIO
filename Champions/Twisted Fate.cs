@@ -242,7 +242,6 @@ namespace NoobAIO.Champions
             }
             if (Menu["Combo"].GetValue<MenuKeyBind>("comboOneshot").Active)
             {
-                Orbwalker.ForceTarget = TargetSelector.GetTarget(w.Range);
                 var targetw = TargetSelector.GetTarget(w.Range);
                 var mobs = GameObjects.Jungle;
                 var minions = GameObjects.Minions;

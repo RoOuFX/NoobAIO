@@ -29,7 +29,7 @@ namespace NoobAIO.Champions
                 new MenuBool("comboQ", "Use Q to gap"),
                 new MenuBool("comboW", "Use W to reset AA", false),
                 new MenuBool("comboE", "Use E"),
-                new MenuBool("comboE", "Use R"),
+                new MenuBool("comboR", "Use R"),
                 new MenuSlider("MinR", "Min Enemies to use R", 2, 1, 5)
             };
             Menu.Add(comboMenu);

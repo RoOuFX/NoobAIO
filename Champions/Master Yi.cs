@@ -26,7 +26,8 @@ namespace NoobAIO.Champions
             // Combo
             var comboMenu = new Menu("Combo", "Combo")
             {
-                new MenuBool("comboQ", "Use Q to gap"),
+                new MenuSeparator("Head1", "Set ezEvade Yi Q settings to normal and enjoy :)"),
+                new MenuBool("comboQ", "Use Q to follow dash?"),
                 new MenuBool("comboW", "Use W to reset AA", false),
                 new MenuBool("comboE", "Use E"),
                 new MenuBool("comboR", "Use R"),
@@ -54,7 +55,7 @@ namespace NoobAIO.Champions
             var miscMenu = new Menu("Misc", "Misc")
             {
                 new MenuBool("Qss", "Use Qss on CC"),
-                new MenuBool("Miscstuff", "Gapcloser")
+                new MenuBool("Miscstuff", "Q to Gapcloser")
             };
             Menu.Add(miscMenu);
 

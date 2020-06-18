@@ -36,6 +36,12 @@ namespace NoobAIO
                 case "MasterYi":
                     new Master_Yi();
                     break;
+                case "Katarina":
+                    new Katarina();
+                    break;
+                case "Kayn":
+                    new Kayn();
+                    break;
             }
             new Rundown();
 

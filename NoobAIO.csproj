@@ -61,6 +61,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Champions\Jax.cs" />
+    <Compile Include="Champions\Katarina.cs" />
+    <Compile Include="Champions\Kayn.cs" />
     <Compile Include="Champions\Master Yi.cs" />
     <Compile Include="Champions\Shyvana.cs" />
     <Compile Include="Champions\Template.cs" />

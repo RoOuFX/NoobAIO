@@ -180,7 +180,7 @@ namespace NoobAIO.Champions
             {
                 if (Orbwalker.ActiveMode == OrbwalkerMode.Combo)
                 {
-                    if (w.IsReady() && UseW && args.Target != null && args.Target.Type == GameObjectType.AIHeroClient)
+                    if (w.IsReady() && UseW && args.Target != null && args.Target.Type == GameObjectType.AIHeroClient && args.Target.IsValidTarget(350))
                     {
                         w.Cast();
                         Orbwalker.ResetAutoAttackTimer();

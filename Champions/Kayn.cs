@@ -28,7 +28,6 @@ namespace NoobAIO.Champions
             {
                 new MenuSeparator("Head 1", "Dont skill Q on Kayn or W on Poppy!"),
                 new MenuKeyBind("walk", "Walk to X pos", System.Windows.Forms.Keys.T, KeyBindType.Toggle),
-                new MenuKeyBind("flash", "Use Hex/flash", System.Windows.Forms.Keys.J, KeyBindType.Toggle),
                 new MenuKeyBind("useW", "Use W", System.Windows.Forms.Keys.U, KeyBindType.Toggle)
             };
             Menu.Add(comboMenu);
@@ -65,10 +64,6 @@ namespace NoobAIO.Champions
             {
                 q.Cast(Player.Position, false);
             }
-            if (Menu["Combo"].GetValue<MenuKeyBind>("flash").Active)
-            {
-                Player.Spellbook.CastSpell(SpellSlot.Summoner1, p);
-            }
             if (Menu["Combo"].GetValue<MenuKeyBind>("walk").Active)
             {
                 if (Player.Position.Distance(new Vector3(174, 758, 5748)) < 400)
@@ -76,9 +71,9 @@ namespace NoobAIO.Champions
                     Player.IssueOrder(GameObjectOrder.MoveTo, new Vector3(174, 758, 5748));
                 }
 
-                if (Player.Position.Distance(new Vector3(14296, 13826, 3002)) < 400)
+                if (Player.Position.Distance(new Vector3(13627, 14317, 4411)) < 600)
                 {
-                    Player.IssueOrder(GameObjectOrder.MoveTo, new Vector3(14296, 13826, 3002));
+                    Player.IssueOrder(GameObjectOrder.MoveTo, new Vector3(13627, 14317, 4411));
                 }
             }
         }

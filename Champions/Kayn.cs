@@ -21,12 +21,14 @@ namespace NoobAIO.Champions
         private static AIHeroClient Player { get { return ObjectManager.Player; } }
         private static void CreateMenu()
         {
-            Menu = new Menu("Kayn", "Noob Kayn", true);
+            Menu = new Menu("Bug", "Noob Bug", true);
 
             // Combo
             var comboMenu = new Menu("Combo", "Combo")
             {
+                new MenuSeparator("Head 1", "Dont skill Q on Kayn or W on Poppy!"),
                 new MenuKeyBind("walk", "Walk to X pos", System.Windows.Forms.Keys.T, KeyBindType.Toggle),
+                new MenuKeyBind("flash", "Use Hex/flash", System.Windows.Forms.Keys.J, KeyBindType.Toggle),
                 new MenuKeyBind("useW", "Use W", System.Windows.Forms.Keys.U, KeyBindType.Toggle)
             };
             Menu.Add(comboMenu);
@@ -36,6 +38,7 @@ namespace NoobAIO.Champions
         public Kayn()
         {
             q = new Spell(SpellSlot.Q);
+            q.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.Line);
             e = new Spell(SpellSlot.E);
             w = new Spell(SpellSlot.W, 900f);
             w.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.Line);
@@ -47,6 +50,8 @@ namespace NoobAIO.Champions
         }
         private static void GameOnGameUpdate(EventArgs args)
         {
+            var p = new Vector3(78, 1094, 92);
+
             if (Player.IsDead)
             {
                 return;
@@ -56,11 +61,24 @@ namespace NoobAIO.Champions
             {
                 w.Cast(Player.Position, false);
             }
+            if (Menu["Combo"].GetValue<MenuKeyBind>("useW").Active)
+            {
+                q.Cast(Player.Position, false);
+            }
+            if (Menu["Combo"].GetValue<MenuKeyBind>("flash").Active)
+            {
+                Player.Spellbook.CastSpell(SpellSlot.Summoner1, p);
+            }
             if (Menu["Combo"].GetValue<MenuKeyBind>("walk").Active)
             {
                 if (Player.Position.Distance(new Vector3(174, 758, 5748)) < 400)
                 {
                     Player.IssueOrder(GameObjectOrder.MoveTo, new Vector3(174, 758, 5748));
+                }
+
+                if (Player.Position.Distance(new Vector3(14296, 13826, 3002)) < 400)
+                {
+                    Player.IssueOrder(GameObjectOrder.MoveTo, new Vector3(14296, 13826, 3002));
                 }
             }
         }

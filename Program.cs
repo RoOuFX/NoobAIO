@@ -42,6 +42,9 @@ namespace NoobAIO
                 case "Kayn":
                     new Kayn();
                     break;
+                case "Poppy":
+                    new Kayn();
+                    break;
             }
             new Rundown();
 
